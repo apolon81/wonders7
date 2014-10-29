@@ -1,3 +1,5 @@
+(in-ns 'wonders7)
+
 (def first-age {
 
   "Lumber Yard"
@@ -95,7 +97,7 @@
   {:provides [:glass :cloth :papyrus], :cost {:clay 2}, :gratis-condition ["East Trading Post" "West Trading Post"], :color :yellow}
 
   "Vineyard"
-  {:effect (gain (count-cards :brown :self :east :west) :cash), :color :yellow}
+  {:effect '(gain :player-one 5 #_(count-cards :brown :self :east :west) :cash), :color :yellow}
 
   "Temple"
   {:provides {:point 3}, :cost {:wood 1, :clay 1, :glass 1}, :gratis-condition "Altar", :color :blue}
