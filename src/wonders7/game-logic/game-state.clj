@@ -5,25 +5,33 @@
    :player-two {:hand [], :table [], :cash 3, :war-score 0}
    :player-three {:hand [], :table [], :cash 3, :war-score 0}})
 
-(def current-state (ref initial-state))
+(defn map-vals [m f]
+  (into {} (for [[k v] m] [k (f v)])))
+
+(defn initialize [state]
+  (map-vals state #(map-vals % ref)))
+
+(def current-state (initialize initial-state))
 
 (defn gain [player quantity subject]
   (dosync
-    (alter current-state update-in [player subject] + quantity)))
+    (alter (get-in current-state [player subject]) + quantity)))
 
 (defn deal [age]
-  (loop [card-pool (shuffle (keys age)) player-pool (keys @current-state)]
+  (loop [card-pool (shuffle (keys age)) player-pool (keys current-state)]
     (if
       (empty? player-pool) nil
       (do
         (dosync
-          (alter current-state update-in [(first player-pool) :hand] into (take 7 card-pool)))
+          (alter (get-in current-state [(first player-pool) :hand]) into (take 7 card-pool)))
         (recur (drop 7 card-pool) (drop 1 player-pool))))))
+
+(get-in current-state [:player-one :hand])
 
 (eval (get-in second-age ["Vineyard" :effect]))
 
-(deal first-age)
+current-state
 
-@current-state
+(deal first-age)
 
 ;(play-card :player-one "Vineyard")
