@@ -1,6 +1,6 @@
 (in-ns 'wonders7)
 
-(def first-age {
+(def cards {
 
   "Lumber Yard"
   {:provides :wood, :color :brown}
@@ -65,9 +65,7 @@
   "Scriptorium"
   {:provides :tablet, :cost {:papyrus 1}, :color :green}
 
-})
-
-(def second-age {
+; second age
 
   "Sawmill"
   {:provides {:wood 2}, :cost {:cash 1}, :color :brown}
@@ -81,14 +79,14 @@
   "Quarry"
   {:provides {:stone 2}, :cost {:cash 1}, :color :brown}
 
-  "Loom"
-  {:provides :cloth, :color :grey}
+;  "Loom"
+;  {:provides :cloth, :color :grey}
 
-  "Glassworks"
-  {:provides :glass, :color :grey}
+;  "Glassworks"
+;  {:provides :glass, :color :grey}
 
-  "Press"
-  {:provides :papyrus, :color :grey}
+;  "Press"
+;  {:provides :papyrus, :color :grey}
 
   "Caravansery"
   {:provides [:wood :stone :ore :clay], :cost {:wood 2}, :gratis-condition "Marketplace", :color :yellow}
@@ -97,7 +95,7 @@
   {:provides [:glass :cloth :papyrus], :cost {:clay 2}, :gratis-condition ["East Trading Post" "West Trading Post"], :color :yellow}
 
   "Vineyard"
-  {:effect '(gain :player-one 5 #_(count-cards :brown :self :east :west) :cash), :color :yellow}
+  {:effect '(gain 5 #_(count-cards :brown :self :east :west) :cash), :color :yellow}
 
   "Temple"
   {:provides {:point 3}, :cost {:wood 1, :clay 1, :glass 1}, :gratis-condition "Altar", :color :blue}
@@ -132,7 +130,6 @@
   "School"
   {:provides :tablet, :cost {:wood 1, :papyrus 1}, :color :green}
 
-})
+; third-age
 
-(def third-age {
 })
