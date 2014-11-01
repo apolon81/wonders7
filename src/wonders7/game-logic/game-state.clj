@@ -103,11 +103,13 @@
       (doseq [player-no (keys @(get current-state :players))]
         (alter (get-in @(get current-state :players) [player-no :hand]) (fn [x] (get hand-mapping player-no)))))))
 
-; TODO - first call play card on sells, then others, pop from :picks after play
+; play the picked cards, pass hands round the table
 (defn process-picks []
   (dosync
-    (println "playing!")
-    (alter (get current-state :picks) (fn [x] {}))))
+    (doseq [[k v] @(get current-state :picks)]
+      (play :card (get v :card) :player k :sell (get v :sell) :trades (get v :trades)))
+    (alter (get current-state :picks) (fn [x] {}))
+    (pass-along)))
 
 ; mark the game as started
 (defn start-game []
@@ -143,13 +145,10 @@
 
 (deal :age 1)
 
-#_(do
-  (play :card (first (shuffle (keys @(get-in @(get current-state :players) [1 :hand])))) :player 1)
-  (play :card (first (shuffle (keys @(get-in @(get current-state :players) [2 :hand])))) :player 2)
-  (play :card (first (shuffle (keys @(get-in @(get current-state :players) [3 :hand])))) :player 3)
-  (pass-along))
-
-(pick :card (first (shuffle (keys @(get-in @(get current-state :players) [1 :hand])))) :player 3)
+(do
+  (pick :card (first (shuffle (keys @(get-in @(get current-state :players) [1 :hand])))) :player 1)
+  (pick :card (first (shuffle (keys @(get-in @(get current-state :players) [2 :hand])))) :player 2)
+  (pick :card (first (shuffle (keys @(get-in @(get current-state :players) [3 :hand])))) :player 3))
 
 current-state
 
