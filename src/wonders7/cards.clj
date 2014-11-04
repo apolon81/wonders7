@@ -1,4 +1,4 @@
-(in-ns 'wonders7)
+(ns wonders7.cards)
 
 (def cards {
 

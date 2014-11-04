@@ -1,4 +1,5 @@
-(ns wonders7)
+(ns wonders7.game-state
+  (:require [wonders7.cards]))
 
 (def base-decks
   {1 ["Barracks" "Altar" "Ore Vein" "Loom" "Guard Tower" "West Trading Post" "Clay Pool"
@@ -34,7 +35,8 @@
       (let [free-seats (get current-state :free-seats)]
         (when (> @free-seats 0)
           (alter (get current-state :players) into [[(- 8 @free-seats) {:name player-name :hand (ref {}) :table (ref #{}) :cash (ref 3) :war-score (ref 0)}]])
-          (alter free-seats dec))))))
+          (alter free-seats dec))))
+    nil))
 
 ; hepler for inc/dec cash or war-score, must be called in a transaction
 (defn gain [player quantity subject]
@@ -91,7 +93,7 @@
       (do
         (pay-costs card player trades)
         (table-put card player)
-        (do-effects (get-in cards [card :effect]) player)))))
+        (do-effects (get-in wonders7.cards/cards [card :effect]) player)))))
 
 ; helper for passing cards round the table
 (defn pass-along []
@@ -137,19 +139,19 @@
   (dosync
     (alter (get current-state :picks) into [[player {:card card, :sell sell, :trades trades}]])))
 
-(join-game "apo")
-(join-game "wuj")
-(join-game "zoll")
+;(join-game "apo")
+;(join-game "wuj")
+;(join-game "zoll")
 
-(start-game)
+;(start-game)
 
-(deal :age 1)
+;(deal :age 1)
 
-(do
+#_(do
   (pick :card (first (shuffle (keys @(get-in @(get current-state :players) [1 :hand])))) :player 1)
   (pick :card (first (shuffle (keys @(get-in @(get current-state :players) [2 :hand])))) :player 2)
   (pick :card (first (shuffle (keys @(get-in @(get current-state :players) [3 :hand])))) :player 3))
 
-current-state
+;current-state
 
 ;(reset-game)
