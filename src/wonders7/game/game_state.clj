@@ -1,5 +1,5 @@
-(ns wonders7.game-state
-  (:require [wonders7.cards]))
+(ns wonders7.game.state
+  (:require [wonders7.game.cards]))
 
 (def base-decks
   {1 ["Barracks" "Altar" "Ore Vein" "Loom" "Guard Tower" "West Trading Post" "Clay Pool"
@@ -93,7 +93,7 @@
       (do
         (pay-costs card player trades)
         (table-put card player)
-        (do-effects (get-in wonders7.cards/cards [card :effect]) player)))))
+        (do-effects (get-in wonders7.game.cards/cards [card :effect]) player)))))
 
 ; helper for passing cards round the table
 (defn pass-along []
