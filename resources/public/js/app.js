@@ -1,61 +1,40 @@
-var conn;                       // global
+var conn;                      // global
+
 (function () {
-  var $i = $('#i'),
-      $history = $('#history');
 
-  var max_id = 0;
+    conn = new WebSocket("ws://localhost:8080/ws");
 
-  conn = new WebSocket("ws://localhost:8080/ws");
+    $('#join-form').dialog({
+        autoOpen: false,
+        modal: true,
+        buttons: {
+            "Ok": function() {
+                var name = $("#player-name");
+                conn.send(name.val());
+                $(this).dialog("close");
+            },
+            "Cancel": function() {
+                $(this).dialog("close");
+            }
+        }
+    });
 
-  conn.onopen = function (e) {
-    alert("connected!");
-    //conn.send(JSON.stringify({command: 'getall'}));
-  };
 
-  conn.onerror = function () {
-    alert("error");
-    console.log(arguments);
-  };
+    $('#join-game').click(function() {
+        $('#join-form').dialog("open");
+    });
 
-  conn.onmessage = function (e) {
-    alert(e.data);
-  };
+    conn.onopen = function (e) {
+        alert("connected!");
+    };
 
-  function add_msg (msg) {
-    var now = Math.round(new Date().getTime() / 1000);
-    var t = (now - msg.time) + 's ago';
-    t = ["<span class=\"time\">", t + "</span>"].join('');
-    var author = ["<span class=\"author\">",
-                  msg.author,
-                  "</span>: "].join('');
-    $history.append('<li>' + author + msg.msg + t +'</li>');
-  }
+    conn.onerror = function () {
+        alert("error");
+        console.log(arguments);
+    };
 
-  function send_to_server () {
-    var msg = $.trim($i.val()),
-        author = $.trim($('#name').val() || 'anonymous');
-    if(msg) {
-      conn.send(JSON.stringify({msg: msg, author: author}));
-      $i.val('');
-    }
-  }
+    conn.onmessage = function (e) {
+        alert(e.data);
+    };
 
-  $('#send').click(send_to_server);
-  $i.focus().keyup(function (e) {
-    if(e.which === 13) {        // enter
-      send_to_server();
-    }
-  });
 })();
-
-
-function start_robot (name) {
-  var id = 0;
-
-  setInterval(function () {
-    var msg = {msg: name + " mesg#" + id, author: name};
-    console.log('sending...........', msg);
-    conn.send(JSON.stringify(msg));
-    id += 1;
-  }, 1000);
-}

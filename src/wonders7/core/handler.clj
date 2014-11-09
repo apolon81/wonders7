@@ -17,17 +17,23 @@
   (hiccup.page/html5
     [:head
       [:title "7wonders"]
+      (hiccup.page/include-css "//ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/themes/smoothness/jquery-ui.css")
       (hiccup.page/include-css "css/7wonders.css")]
     [:body
+      [:div {:id "join-form"}
+        [:form
+          [:label {:for "name"} "Name"]
+          [:input {:type "text" :name "name" :id "player-name"}]]]
       [:div
         [:p (-> wonders7.game.state/current-state hiccup.util/as-str hiccup.util/escape-html)]
         [:button {:id "join-game"} "join-game"]
         [:button {:id "reset-game"} "reset-game"]]
-      (hiccup.page/include-js "//ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js")
+      (hiccup.page/include-js "//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js")
+      (hiccup.page/include-js "//ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js")
       (hiccup.page/include-js "js/app.js")]))
 
 (defn msg-from-client [msg ws]
-  (info (str "client: " (get @clients ws) "message: " msg)))
+  (info (str "client: " (get @clients ws) " message: " msg)))
 
 (defn ws-create-handler [req]
   (let [ws @(http/websocket-connection req)]
