@@ -1,20 +1,30 @@
-var conn;                      // global
+// websocket handle
+var ws;
 
 (function () {
 
-    conn = new WebSocket("ws://localhost:8080/ws");
+    // handler function for POST requests that return the game's state
+    var renderState = function(data, status) {
+        $("#debug-state").html(JSON.stringify(data, undefined, 2));
+    };
 
+    // open the websocket connection for server pushes
+    ws = new WebSocket("ws://localhost:8080/ws");
+
+    // fetch the game state once on the page load
+    $.post("http://localhost:8080/state", {id: "dummy"}, renderState);
+
+    // join button handler
+    $('#join-game').click(function() {
+        $('#join-form').dialog("open");
+    });
     $('#join-form').dialog({
         autoOpen: false,
         modal: true,
         buttons: {
             "Ok": function() {
                 var name = $("#player-name").val();
-                //conn.send(JSON.stringify({command: 'join', name: name.val()}));
-                $.get("http://localhost:8080/join/" + name,
-                function(data,status){
-                    $("#debug-state").html(JSON.stringify(JSON.parse(data), undefined, 2));
-                });
+                $.post("http://localhost:8080/join", {nick: name, id: "dummy"}, renderState);
                 $(this).dialog("close");
             },
             "Cancel": function() {
@@ -23,23 +33,19 @@ var conn;                      // global
         }
     });
 
-
-    $('#join-game').click(function() {
-        $('#join-form').dialog("open");
+    // reset button handler
+    $('#reset-game').click(function() {
+        $.post("http://localhost:8080/reset", {id: "dummy"}, renderState);
     });
 
-    conn.onopen = function (e) {
-        alert("connected!");
-    };
+    // log any websocket opening errors
+    ws.onerror = function(error) {
+        console.log('Error detected: ' + error);
+    }
 
-    conn.onerror = function () {
-        alert("error");
-        console.log(arguments);
-    };
-
-    conn.onmessage = function (e) {
-        alert(e.data);
-      console.log(e.data);
+    // when the server calls us up, we need to fetch the current game state
+    ws.onmessage = function (msg) {
+        $.post("http://localhost:8080/state", {id: "dummy"}, renderState);
     };
 
 })();

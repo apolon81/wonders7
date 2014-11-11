@@ -1,5 +1,6 @@
 (ns wonders7.game.state
-  (:require [wonders7.game.cards]))
+  (:require [wonders7.game.cards]
+            [wonders7.core.handler :refer [msg-broadcast]]))
 
 (def base-decks
   {1 ["Barracks" "Altar" "Ore Vein" "Loom" "Guard Tower" "West Trading Post" "Clay Pool"
@@ -52,8 +53,7 @@
       (let [free-seats (get current-state :free-seats)]
         (when (> @free-seats 0)
           (alter (get current-state :players) into [[(- 8 @free-seats) {:name player-name :id player-id :hand (ref {}) :table (ref #{}) :cash (ref 3) :war-score (ref 0)}]])
-          (alter free-seats dec)))))
-  (state-view))
+          (alter free-seats dec))))))
 
 ; hepler for inc/dec cash or war-score, must be called in a transaction
 (defn gain [player quantity subject]

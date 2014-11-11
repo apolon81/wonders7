@@ -8,7 +8,8 @@
             [clojure.data.json :refer [json-str read-json write-str]]
             [hiccup.page]
             [hiccup.util]
-            [wonders7.game.state]))
+            [wonders7.game.state]
+            [wonders7.core.rest-api :as api]))
 
 (defn uuid [] (str (java.util.UUID/randomUUID)))
 
@@ -29,7 +30,7 @@
         [:button {:id "join-game"} "join-game"]
         [:button {:id "reset-game"} "reset-game"]
         [:button {:id "pick-card"} "pick-card"]
-        [:pre {:id "debug-state"} (-> (wonders7.game.state/state-view) hiccup.util/as-str hiccup.util/escape-html)]]
+        [:pre {:id "debug-state"}]]
       (hiccup.page/include-js "//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js")
       (hiccup.page/include-js "//ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js")
       (hiccup.page/include-js "js/app.js")]))
@@ -38,7 +39,9 @@
   (stream/put! client-stream msg))
 
 (defn msg-broadcast [msg]
-  (map #(msg-to-client % msg) @clients))
+  (do
+    ;(info "inside msg-broadcast")
+    (map #(msg-to-client % msg) @clients)))
 
 (defn msg-from-client [msg ws]
   (let [data (read-json msg)]
@@ -57,13 +60,14 @@
 (defroutes app-routes
   (GET "/" [] game-page)
   (GET "/ws" [] ws-create-handler)
-  (GET "/join/:pname" [pname] (-> (wonders7.game.state/join-game :player-name pname :player-id "dummy")
-                                  write-str))
+  (POST "/state" [id] (api/state id))
+  (POST "/join" [nick id] (api/join nick id))
+  (POST "/reset" [id] (api/reset id))
   (route/not-found "Not Found"))
 
+; turned off anti-forgery for now, will adopt it later on
 (def app
-  (wrap-defaults app-routes site-defaults))
+  (wrap-defaults app-routes (update-in site-defaults [:security :anti-forgery] (fn [x] false))))
 
 ;(http/start-server app {:port 8080})
-
-(clojure.pprint/pprint (wonders7.game.state/state-view))
+;(add-watch (get wonders7.game.state/current-state :players) :players-watch (fn [k r old-state new-state] (msg-broadcast "ping")))
