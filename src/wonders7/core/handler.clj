@@ -9,11 +9,10 @@
             [hiccup.page]
             [hiccup.util]
             [wonders7.game.state]
-            [wonders7.core.rest-api :as api]))
+            [wonders7.core.rest-api :as api]
+            [wonders7.core.ws-api :as ws-api]))
 
 (defn uuid [] (str (java.util.UUID/randomUUID)))
-
-(def clients (atom {}))
 
 (defn game-page [req]
   (hiccup.page/html5
@@ -29,33 +28,18 @@
       [:div
         [:button {:id "join-game"} "join-game"]
         [:button {:id "reset-game"} "reset-game"]
+        [:button {:id "start-game"} "start-game"]
         [:button {:id "pick-card"} "pick-card"]
         [:pre {:id "debug-state"}]]
       (hiccup.page/include-js "//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js")
       (hiccup.page/include-js "//ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js")
       (hiccup.page/include-js "js/app.js")]))
 
-(defn msg-to-client [[client-stream uuid] msg]
-  (stream/put! client-stream msg))
-
-(defn msg-broadcast [msg]
-  (do
-    ;(info "inside msg-broadcast")
-    (map #(msg-to-client % msg) @clients)))
-
-(defn msg-from-client [msg ws]
-  (let [data (read-json msg)]
-    (info "mesg received" data)
-    (when (= (:command data) "join")
-      (info "processing join command")
-      (wonders7.game.state/join-game :player-name (:name data) :player-id (get @clients ws))
-      (msg-broadcast (json-str (wonders7.game.state/state-view))))))
-
 (defn ws-create-handler [req]
   (let [ws @(http/websocket-connection req)]
-    (stream/on-closed ws #(swap! clients dissoc ws))
-    (stream/consume #(msg-from-client % ws) ws)
-    (swap! clients assoc ws (uuid))))
+    (stream/on-closed ws #(swap! ws-api/clients dissoc ws))
+    (stream/consume #(ws-api/msg-from-client % ws) ws)
+    (swap! ws-api/clients assoc ws (uuid))))
 
 (defroutes app-routes
   (GET "/" [] game-page)
@@ -63,6 +47,7 @@
   (POST "/state" [id] (api/state id))
   (POST "/join" [nick id] (api/join nick id))
   (POST "/reset" [id] (api/reset id))
+  (POST "/start" [id] (api/start id))
   (route/not-found "Not Found"))
 
 ; turned off anti-forgery for now, will adopt it later on
@@ -70,4 +55,5 @@
   (wrap-defaults app-routes (update-in site-defaults [:security :anti-forgery] (fn [x] false))))
 
 ;(http/start-server app {:port 8080})
-;(add-watch (get wonders7.game.state/current-state :players) :players-watch (fn [k r old-state new-state] (msg-broadcast "ping")))
+;(add-watch (get wonders7.game.state/current-state :players) :players-watch (fn [k r old-state new-state] (ws-api/msg-broadcast "ping")))
+;(ws-api/msg-broadcast "ping")

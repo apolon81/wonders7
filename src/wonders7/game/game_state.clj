@@ -1,6 +1,5 @@
 (ns wonders7.game.state
-  (:require [wonders7.game.cards]
-            [wonders7.core.handler :refer [msg-broadcast]]))
+  (:require [wonders7.game.cards]))
 
 (def base-decks
   {1 ["Barracks" "Altar" "Ore Vein" "Loom" "Guard Tower" "West Trading Post" "Clay Pool"

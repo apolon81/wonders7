@@ -38,6 +38,11 @@ var ws;
         $.post("http://localhost:8080/reset", {id: "dummy"}, renderState);
     });
 
+    // start game handler
+    $('#start-game').click(function() {
+        $.post("http://localhost:8080/start", {id: "dummy"}, renderState);
+    });
+
     // log any websocket opening errors
     ws.onerror = function(error) {
         console.log('Error detected: ' + error);
