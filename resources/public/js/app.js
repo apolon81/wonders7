@@ -9,8 +9,12 @@ var conn;                      // global
         modal: true,
         buttons: {
             "Ok": function() {
-                var name = $("#player-name");
-                conn.send(name.val());
+                var name = $("#player-name").val();
+                //conn.send(JSON.stringify({command: 'join', name: name.val()}));
+                $.get("http://localhost:8080/join/" + name,
+                function(data,status){
+                    $("#debug-state").html(JSON.stringify(JSON.parse(data), undefined, 2));
+                });
                 $(this).dialog("close");
             },
             "Cancel": function() {
@@ -35,6 +39,7 @@ var conn;                      // global
 
     conn.onmessage = function (e) {
         alert(e.data);
+      console.log(e.data);
     };
 
 })();

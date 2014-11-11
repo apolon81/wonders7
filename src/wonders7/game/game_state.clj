@@ -28,15 +28,32 @@
 (def current-state
   (into {} (for [[k v] initial-state] [k (ref v)])))
 
+(defn state-view []
+  (into {} [[:players (into (sorted-map)
+                        (for [[k v] @(:players current-state)]
+                             [k (into {} [[:name (:name v)]
+                                          [:id (:id v)]
+                                          [:hand (deref (:hand v))]
+                                          [:table (deref (:table v))]
+                                          [:cash (deref (:cash v))]
+                                          [:war-score (deref (:war-score v))]])]))]
+            [:trash (deref (:trash current-state))]
+            [:picks (deref (:picks current-state))]
+            [:age (deref (:age current-state))]
+            [:free-seats (deref (:free-seats current-state))]
+            [:in-progress (deref (:in-progress current-state))]]))
+
+;(state-view)
+
 ; adds an entry to the players map located in the current game state
-(defn join-game [player-name]
+(defn join-game [& {:keys [player-name player-id]}]
   (dosync
     (when-not @(get current-state :in-progress)
       (let [free-seats (get current-state :free-seats)]
         (when (> @free-seats 0)
-          (alter (get current-state :players) into [[(- 8 @free-seats) {:name player-name :hand (ref {}) :table (ref #{}) :cash (ref 3) :war-score (ref 0)}]])
-          (alter free-seats dec))))
-    nil))
+          (alter (get current-state :players) into [[(- 8 @free-seats) {:name player-name :id player-id :hand (ref {}) :table (ref #{}) :cash (ref 3) :war-score (ref 0)}]])
+          (alter free-seats dec)))))
+  (state-view))
 
 ; hepler for inc/dec cash or war-score, must be called in a transaction
 (defn gain [player quantity subject]
@@ -139,7 +156,7 @@
   (dosync
     (alter (get current-state :picks) into [[player {:card card, :sell sell, :trades trades}]])))
 
-;(join-game "apo")
+;(join-game :player-name "apo" :player-id "blabla")
 ;(join-game "wuj")
 ;(join-game "zoll")
 

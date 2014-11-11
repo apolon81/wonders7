@@ -6,7 +6,8 @@
                  [compojure "1.2.1"]
                  [ring/ring-defaults "0.1.2"]
                  [aleph "0.4.0-alpha9"]
-                 [org.clojure/tools.logging "0.3.1"]]
+                 [org.clojure/tools.logging "0.3.1"]
+                 [org.clojure/data.json "0.2.5"]]
   :plugins [[lein-ring "0.8.13"]]
   :ring {:handler wonders7.core.handler/app}
   :profiles
