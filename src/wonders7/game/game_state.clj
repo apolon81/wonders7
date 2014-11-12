@@ -28,6 +28,9 @@
 (def current-state
   (into {} (for [[k v] initial-state] [k (ref v)])))
 
+(defn player-exists [player-id]
+  (some (conj #{} player-id) (for [[k v] @(:players current-state)] (:id v))))
+
 (defn state-view []
   (into {} [[:players (into (sorted-map)
                         (for [[k v] @(:players current-state)]
@@ -165,11 +168,13 @@
 
 ;(deal :age 1)
 
+
+
 #_(do
   (pick :card (first (shuffle (keys @(get-in @(get current-state :players) [1 :hand])))) :player 1)
   (pick :card (first (shuffle (keys @(get-in @(get current-state :players) [2 :hand])))) :player 2)
   (pick :card (first (shuffle (keys @(get-in @(get current-state :players) [3 :hand])))) :player 3))
 
 ;current-state
-
+;(state-view)
 ;(reset-game)
