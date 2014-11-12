@@ -129,16 +129,17 @@
     (alter (get current-state :picks) (fn [x] {}))
     (pass-along)))
 
-; mark the game as started
+; mark the game as started, deal the first age
 (defn start-game []
   (dosync
-    (alter (get current-state :in-progress) (fn [x] true)))
-    (remove-watch (get current-state :picks) :picks-watch)
-    (add-watch (get current-state :picks)
-               :picks-watch
-               (fn [k r old-state new-state]
-                 (when (= (count new-state) (count @(get current-state :players)))
-                   (process-picks)))))
+    (when (not @(:in-progress current-state))
+      (alter (:in-progress current-state) (fn [x] true))
+      (add-watch (:picks current-state)
+                 :picks-watch
+                 (fn [k r old-state new-state]
+                   (when (= (count new-state) (count @(get current-state :players)))
+                     (process-picks))))
+      (deal :age 1))))
 
 ; reset the game state
 (defn reset-game []
@@ -148,6 +149,7 @@
     (alter (get current-state :age) (fn [x] 1))
     (alter (get current-state :trash) (fn [x] #{}))
     (alter (get current-state :players) (fn [x] {}))
+    (remove-watch (:picks current-state) :picks-watch)
     (alter (get current-state :picks) (fn [x] {}))))
 
 ; save a decission for further processing
