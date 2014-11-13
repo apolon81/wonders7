@@ -18,7 +18,7 @@
 ; fresh game state template
 (def initial-state
   {:players (sorted-map)
-   :trash #{} ; TODO this will not work, multiple copies of a card might end up in the trash
+   :trash []
    :picks {}
    :age 1
    :free-seats 7
@@ -156,7 +156,7 @@
     (alter (:in-progress current-state) (fn [x] false))
     (alter (:free-seats current-state) (fn [x] 7))
     (alter (:age current-state) (fn [x] 1))
-    (alter (:trash current-state) (fn [x] #{}))
+    (alter (:trash current-state) (fn [x] []))
     (alter (:players current-state) (fn [x] {}))
     (remove-watch (:picks current-state) :picks-watch)
     (alter (:picks current-state) (fn [x] {}))))
@@ -168,6 +168,6 @@
 
 (defn test-turn []
   (do
-    (pick :card (first (shuffle (keys @(get-in @(get current-state :players) [1 :hand])))) :player 1)
-    (pick :card (first (shuffle (keys @(get-in @(get current-state :players) [2 :hand])))) :player 2 :sell true)
-    (pick :card (first (shuffle (keys @(get-in @(get current-state :players) [3 :hand])))) :player 3)))
+    (pick :card (first (shuffle (keys @(get-in @(:players current-state) [1 :hand])))) :player 1)
+    (pick :card (first (shuffle (keys @(get-in @(:players current-state) [2 :hand])))) :player 2 :sell true)
+    (pick :card (first (shuffle (keys @(get-in @(:players current-state) [3 :hand])))) :player 3)))
