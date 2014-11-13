@@ -5,10 +5,8 @@
             [aleph.http :as http]
             [manifold.stream :as stream]
             [clojure.tools.logging :refer [info]]
-            [clojure.data.json :refer [json-str read-json write-str]]
             [hiccup.page]
             [hiccup.util]
-            [wonders7.game.state]
             [wonders7.core.rest-api :as api]
             [wonders7.core.ws-api :as ws-api]))
 
@@ -55,5 +53,3 @@
   (wrap-defaults app-routes (update-in site-defaults [:security :anti-forgery] (fn [x] false))))
 
 ;(http/start-server app {:port 8080})
-;(add-watch (get wonders7.game.state/current-state :players) :players-watch (fn [k r old-state new-state] (ws-api/msg-broadcast "ping")))
-;(ws-api/msg-broadcast "ping")

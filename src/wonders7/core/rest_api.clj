@@ -1,6 +1,5 @@
 (ns wonders7.core.rest-api
   (:require [wonders7.game.state :as game]
-            [clojure.data.json :as json]
             [clojure.tools.logging :refer [info]]
             [wonders7.core.ws-api :refer [notify-clients json-response]]))
 

@@ -18,7 +18,7 @@
 ; fresh game state template
 (def initial-state
   {:players (sorted-map)
-   :trash #{}
+   :trash #{} ; TODO this will not work, multiple copies of a card might end up in the trash
    :picks {}
    :age 1
    :free-seats 7
@@ -28,9 +28,11 @@
 (def current-state
   (into {} (for [[k v] initial-state] [k (ref v)])))
 
+; utility function to check if a given player sits at the table
 (defn player-exists [player-id]
   (some (conj #{} player-id) (for [[k v] @(:players current-state)] (:id v))))
 
+; this resolves all the references to provide a snapshot of the game state
 (defn state-view []
   (into {} [[:players (into (sorted-map)
                         (for [[k v] @(:players current-state)]
@@ -46,50 +48,54 @@
             [:free-seats (deref (:free-seats current-state))]
             [:in-progress (deref (:in-progress current-state))]]))
 
-;(state-view)
-
 ; adds an entry to the players map located in the current game state
 (defn join-game [& {:keys [player-name player-id]}]
   (dosync
-    (when-not @(get current-state :in-progress)
-      (let [free-seats (get current-state :free-seats)]
+    (when-not @(:in-progress current-state)
+      (let [free-seats (:free-seats current-state)]
         (when (> @free-seats 0)
-          (alter (get current-state :players) into [[(- 8 @free-seats) {:name player-name :id player-id :hand (ref {}) :table (ref #{}) :cash (ref 3) :war-score (ref 0)}]])
+          (alter (:players current-state) into [[(- 8 @free-seats)
+                                                 {:name player-name
+                                                  :id player-id
+                                                  :hand (ref {})
+                                                  :table (ref #{})
+                                                  :cash (ref 3)
+                                                  :war-score (ref {})}]])
           (alter free-seats dec))))))
 
-; hepler for inc/dec cash or war-score, must be called in a transaction
+; hepler for inc/dec cash or possibly sth else, must be called in a transaction
 (defn gain [player quantity subject]
-  (alter (get-in @(get current-state :players) [player subject]) + quantity))
+  (alter (get-in @(:players current-state) [player subject]) + quantity))
 
 ; api handler for populating hands
 (defn deal [& {:keys [age] :or {age 1}}]
-  (loop [card-pool (shuffle (get-deck age)) player-pool (keys @(get current-state :players))]
+  (loop [card-pool (shuffle (get-deck age)) player-pool (keys @(:players current-state))]
     (if
       (empty? player-pool) nil
       (do
         (dosync
           (alter
-            (get-in @(get current-state :players) [(first player-pool) :hand])
+            (get-in @(:players current-state) [(first player-pool) :hand])
             (fn [x] (apply merge-with + (map (fn [y] {y 1}) (take 7 card-pool))))))
         (recur (drop 7 card-pool) (drop 1 player-pool))))))
 
 ; this takes the card out of a player's hand
 (defn hand-pull [card player]
   (alter
-    (get-in @(get current-state :players) [player :hand])
+    (get-in @(:players current-state) [player :hand])
     (fn [x] (into {} (filter #(> (second %) 0) (update-in x [card] dec))))))
 
 ; remove from hand, place in the trash
 (defn trash [card player]
   (do
     (hand-pull card player)
-    (alter (get current-state :trash) conj card)))
+    (alter (:trash current-state) conj card)))
 
 ; remove from hand, place on the table
 (defn table-put [card player]
   (do
     (hand-pull card player)
-    (alter (get-in @(get current-state :players) [player :table]) conj card)))
+    (alter (get-in @(:players current-state) [player :table]) conj card)))
 
 (defn can-afford [player card trades]
   true)
@@ -118,18 +124,18 @@
 (defn pass-along []
   (dosync
     (let [hand-mapping (into {}
-                         (for [player-no (keys @(get current-state :players))]
-                           [(inc (mod (+ (dec player-no) (if (odd? @(get current-state :age)) 1 -1)) (count @(get current-state :players))))
-                            @(get-in @(get current-state :players) [player-no :hand])]))]
-      (doseq [player-no (keys @(get current-state :players))]
-        (alter (get-in @(get current-state :players) [player-no :hand]) (fn [x] (get hand-mapping player-no)))))))
+                         (for [player-no (keys @(:players current-state))]
+                           [(inc (mod (+ (dec player-no) (if (odd? @(:age current-state)) 1 -1)) (count @(:players current-state))))
+                            @(get-in @(:players current-state) [player-no :hand])]))]
+      (doseq [player-no (keys @(:players current-state))]
+        (alter (get-in @(:players current-state) [player-no :hand]) (fn [x] (get hand-mapping player-no)))))))
 
 ; play the picked cards, pass hands round the table
 (defn process-picks []
   (dosync
-    (doseq [[k v] @(get current-state :picks)]
-      (play :card (get v :card) :player k :sell (get v :sell) :trades (get v :trades)))
-    (alter (get current-state :picks) (fn [x] {}))
+    (doseq [[k v] @(:picks current-state)]
+      (play :card (:card v) :player k :sell (:sell v) :trades (:trades v)))
+    (alter (:picks current-state) (fn [x] {}))
     (pass-along)))
 
 ; mark the game as started, deal the first age
@@ -147,34 +153,20 @@
 ; reset the game state
 (defn reset-game []
   (dosync
-    (alter (get current-state :in-progress) (fn [x] false))
-    (alter (get current-state :free-seats) (fn [x] 7))
-    (alter (get current-state :age) (fn [x] 1))
-    (alter (get current-state :trash) (fn [x] #{}))
-    (alter (get current-state :players) (fn [x] {}))
+    (alter (:in-progress current-state) (fn [x] false))
+    (alter (:free-seats current-state) (fn [x] 7))
+    (alter (:age current-state) (fn [x] 1))
+    (alter (:trash current-state) (fn [x] #{}))
+    (alter (:players current-state) (fn [x] {}))
     (remove-watch (:picks current-state) :picks-watch)
-    (alter (get current-state :picks) (fn [x] {}))))
+    (alter (:picks current-state) (fn [x] {}))))
 
 ; save a decission for further processing
 (defn pick [& {:keys [player card sell trades] :or {sell false}}]
   (dosync
-    (alter (get current-state :picks) into [[player {:card card, :sell sell, :trades trades}]])))
-
-;(join-game :player-name "apo" :player-id "blabla")
-;(join-game "wuj")
-;(join-game "zoll")
-
-;(start-game)
-
-;(deal :age 1)
-
-
+    (alter (:picks current-state) into [[player {:card card, :sell sell, :trades trades}]])))
 
 #_(do
   (pick :card (first (shuffle (keys @(get-in @(get current-state :players) [1 :hand])))) :player 1)
   (pick :card (first (shuffle (keys @(get-in @(get current-state :players) [2 :hand])))) :player 2)
   (pick :card (first (shuffle (keys @(get-in @(get current-state :players) [3 :hand])))) :player 3))
-
-;current-state
-;(state-view)
-;(reset-game)

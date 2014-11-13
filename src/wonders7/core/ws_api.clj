@@ -28,8 +28,3 @@
 (defn notify-clients []
   (msg-broadcast (json/write-str {:command "refresh"}))
   (json-response nil))
-
-
-@clients
-
-(game/player-exists "e9ec92de-2b3a-4d8f-9ec6-e22418370dd5")
