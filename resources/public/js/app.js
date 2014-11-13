@@ -1,5 +1,5 @@
 // websocket handle
-var ws, uuid;
+var ws, uuid, my_player_no;
 
 (function () {
 
@@ -10,6 +10,14 @@ var ws, uuid;
 
     // dummy handler for POSTs returning simple 200 OK with no body
     var dummyHandler = function(data, status) {};
+
+    // handler for successful game join action - we need to grab our player no
+    var joinHandler = function(data, status) {
+        var content = JSON.parse(data);
+        content.your_player_number
+        localStorage.setItem("my_player_no", content.your_player_number);
+        my_player_no = localStorage.getItem("my_player_no");
+    }
 
     // open the websocket connection for server pushes
     ws = new WebSocket("ws://apolons1-mobl1:8080/ws");
@@ -29,7 +37,7 @@ var ws, uuid;
         buttons: {
             "Ok": function() {
                 var name = $("#player-name").val();
-                $.post("http://apolons1-mobl1:8080/join", {nick: name, id: uuid}, dummyHandler);
+                $.post("http://apolons1-mobl1:8080/join", {nick: name, id: uuid}, joinHandler);
                 $(this).dialog("close");
             },
             "Cancel": function() {

@@ -15,7 +15,11 @@
       (json-response (json/write-str {:reason "can not join to an in progress game"}) 406)
       (do
         (game/join-game :player-name nick :player-id player-id)
-        (notify-clients)))))
+        (notify-clients)
+        (json-response (json/write-str {:your_player_number (first
+                                                              (first
+                                                                (filter #(= (:id (second %)) player-id)
+                                                                        (:players (game/state-view)))))}))))))
 
 (defn reset [player-id]
   (do
