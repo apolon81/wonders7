@@ -8,9 +8,11 @@
   (json-response (game/state-view)))
 
 (defn join [nick player-id]
-  (do
-    (game/join-game :player-name nick :player-id player-id)
-    (notify-clients)))
+  (if (game/player-exists player-id)
+    (json-response nil 406)
+    (do
+      (game/join-game :player-name nick :player-id player-id)
+      (notify-clients))))
 
 (defn reset [player-id]
   (do
