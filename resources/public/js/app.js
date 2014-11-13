@@ -8,6 +8,9 @@ var ws, uuid;
         $("#debug-state").html(JSON.stringify(data, undefined, 2));
     };
 
+    // dummy handler for POSTs returning simple 200 OK with no body
+    var dummyHandler = function(data, status) {};
+
     // open the websocket connection for server pushes
     ws = new WebSocket("ws://apolons1-mobl1:8080/ws");
 
@@ -26,7 +29,7 @@ var ws, uuid;
         buttons: {
             "Ok": function() {
                 var name = $("#player-name").val();
-                $.post("http://apolons1-mobl1:8080/join", {nick: name, id: uuid}, renderState);
+                $.post("http://apolons1-mobl1:8080/join", {nick: name, id: uuid}, dummyHandler);
                 $(this).dialog("close");
             },
             "Cancel": function() {
@@ -37,12 +40,12 @@ var ws, uuid;
 
     // reset button handler
     $('#reset-game').click(function() {
-        $.post("http://apolons1-mobl1:8080/reset", {id: uuid}, renderState);
+        $.post("http://apolons1-mobl1:8080/reset", {id: uuid}, dummyHandler);
     });
 
     // start game handler
     $('#start-game').click(function() {
-        $.post("http://apolons1-mobl1:8080/start", {id: uuid}, renderState);
+        $.post("http://apolons1-mobl1:8080/start", {id: uuid}, dummyHandler);
     });
 
     // introduce yourself to the server
@@ -52,14 +55,14 @@ var ws, uuid;
 
     // log any websocket opening errors
     ws.onerror = function(error) {
-        console.log('Error detected: ' + error);
+        console.log('ws.onerror: ' + error);
     }
 
-    // when the server calls us up, we need to fetch the current game state
+    // when the server calls us up, its one of two reasons
+    // 1. either we need to fetch the current game state
+    // 2. or handle the client uuid registration
     ws.onmessage = function (msg) {
-        console.log(msg);
         var content = JSON.parse(msg.data);
-        console.log(content);
         if (content.command == "refresh") $.post("http://apolons1-mobl1:8080/state", {id: uuid}, renderState);
         if (content.command == "introduce") {
             localStorage.setItem("uuid", content.uuid);
