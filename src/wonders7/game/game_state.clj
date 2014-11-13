@@ -166,7 +166,8 @@
   (dosync
     (alter (:picks current-state) into [[player {:card card, :sell sell, :trades trades}]])))
 
-#_(do
-  (pick :card (first (shuffle (keys @(get-in @(get current-state :players) [1 :hand])))) :player 1)
-  (pick :card (first (shuffle (keys @(get-in @(get current-state :players) [2 :hand])))) :player 2)
-  (pick :card (first (shuffle (keys @(get-in @(get current-state :players) [3 :hand])))) :player 3))
+(defn test-turn []
+  (do
+    (pick :card (first (shuffle (keys @(get-in @(get current-state :players) [1 :hand])))) :player 1)
+    (pick :card (first (shuffle (keys @(get-in @(get current-state :players) [2 :hand])))) :player 2 :sell true)
+    (pick :card (first (shuffle (keys @(get-in @(get current-state :players) [3 :hand])))) :player 3)))
