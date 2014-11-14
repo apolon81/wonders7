@@ -15,6 +15,11 @@
 (defn game-page [req]
   (hiccup.page/html5
     [:head
+      [:meta {:http-equiv "cache-control" :content "max-age=0"}]
+      [:meta {:http-equiv "cache-control" :content "no-cache"}]
+      [:meta {:http-equiv "expires" :content "0"}]
+      [:meta {:http-equiv "expires" :content "Tue, 01 Jan 1980 1:00:00 GMT"}]
+      [:meta {:http-equiv "pragma" :content "no-cache"}]
       [:title "7wonders"]
       (hiccup.page/include-css "//ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/themes/smoothness/jquery-ui.css")
       (hiccup.page/include-css "css/7wonders.css")]
@@ -28,6 +33,7 @@
         [:button {:id "reset-game"} "reset-game"]
         [:button {:id "start-game"} "start-game"]
         [:button {:id "pick-card"} "pick-card"]
+        [:div {:id "card-picker" :hidden "true"} [:select {:id "card-selector"}]]
         [:pre {:id "debug-state"}]]
       (hiccup.page/include-js "//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js")
       (hiccup.page/include-js "//ajax.googleapis.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js")
@@ -46,6 +52,7 @@
   (POST "/join" [nick id] (api/join nick id))
   (POST "/reset" [id] (api/reset id))
   (POST "/start" [id] (api/start id))
+  (route/resources "/")
   (route/not-found "Not Found"))
 
 ; turned off anti-forgery for now, will adopt it later on
