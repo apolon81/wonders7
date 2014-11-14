@@ -52,6 +52,7 @@
   (POST "/join" [nick id] (api/join nick id))
   (POST "/reset" [id] (api/reset id))
   (POST "/start" [id] (api/start id))
+  (POST "/pick" [plrno card id] (api/pick plrno card id))
   (route/resources "/")
   (route/not-found "Not Found"))
 

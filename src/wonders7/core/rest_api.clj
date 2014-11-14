@@ -33,4 +33,14 @@
       (game/start-game)
       (notify-clients))))
 
+(defn pick [plrno card id]
+  (let [player (Integer. plrno)]
+    (if @(:in-progress game/current-state)
+      (if (= id (:id (get @(:players game/current-state) player)))
+        (do
+          (game/pick :card card :player player)
+          (notify-clients))
+        (json-response (json/write-str {:reason "you cannot pick for other player"}) 406))
+      (json-response (json/write-str {:reason "can not pick when the game is not started yet"}) 406))))
+
 ;(do (game/test-turn) (notify-clients))

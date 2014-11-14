@@ -74,12 +74,11 @@ $(function () {
             modal: true,
             buttons: {
                 "Ok": function() {
-                    console.log($("#card-picker option:selected").text());
-                    //$.post("http://apolons1-mobl1:8080/pick",
-                    //        {plrno: plrno(),
-                    //         card: $("#card-picker option:selected").text()},
-                    //         id: uuid(),
-                    //         dummyHandler);
+                    $.post("http://apolons1-mobl1:8080/pick",
+                            {plrno: plrno(),
+                             card: $("#card-picker option:selected").text(),
+                             id: uuid()},
+                             dummyHandler);
                     $(this).dialog("close");
                 },
                 "Cancel": function() {
