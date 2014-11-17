@@ -3,10 +3,12 @@ $(function () {
     // websocket handle
     var ws;
 
+    // wrapper for reading the ws connection uuid
     var uuid = function(){
         return localStorage.getItem("uuid");
     };
 
+    // wrapper for reading this player's number (assigned after joining a game)
     var plrno = function(){
         return localStorage.getItem("my_player_no");
     };
@@ -22,7 +24,6 @@ $(function () {
     // handler for successful game join action - we need to grab our player no
     var joinHandler = function(data, status) {
         var content = JSON.parse(data);
-        content.your_player_number
         localStorage.setItem("my_player_no", content.your_player_number);
     }
 
