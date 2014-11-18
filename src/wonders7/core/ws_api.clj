@@ -2,7 +2,7 @@
   (:require [manifold.stream :as stream]
             [clojure.data.json :as json]
             [clojure.tools.logging :refer [info]]
-            [wonders7.game.state :as game]))
+            [wonders7.game.util :as util]))
 
 (def clients (atom {}))
 
@@ -21,7 +21,7 @@
 (defn msg-from-client [msg ws]
   (let [data (json/read-json msg)]
     (when (= (:message data) "introduce")
-      (if (game/player-exists (:uuid data))
+      (if (util/player-exists (:uuid data))
         (swap! clients update-in [ws] (fn [x] (:uuid data)))
         (stream/put! ws (json/write-str {:command "introduce", :uuid (get @clients ws)}))))))
 
